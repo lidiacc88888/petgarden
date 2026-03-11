@@ -1,1 +1,2324 @@
-# petgarden
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>宠萌学园 · 森林萌宠版（账号隔离+全局预设）</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ========== 全局样式 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Comic Sans MS', 'Chalkboard SE', 'Patrick Hand', cursive, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: #2b4b1e;
+            background-image: 
+                radial-gradient(circle at 10% 20%, #4c7a3d 8%, transparent 20%),
+                radial-gradient(circle at 90% 70%, #3b642b 10%, transparent 25%),
+                linear-gradient(145deg, #1f4a1d, #306b2a);
+            padding: 20px;
+            position: relative;
+            overflow-x: auto;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(80, 60, 30, 0.1) 80px, rgba(80, 60, 30, 0.1) 85px),
+                repeating-linear-gradient(0deg, transparent, transparent 100px, rgba(40, 70, 20, 0.1) 100px, rgba(40, 70, 20, 0.1) 110px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .leaf {
+            position: fixed;
+            top: -10%;
+            color: rgba(200, 230, 150, 0.3);
+            font-size: 1.5rem;
+            animation: fall 15s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
+        }
+
+        /* ========== 登录页 ========== */
+        .login-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transition: 0.3s;
+        }
+        .login-container.hidden {
+            display: none;
+        }
+        .login-card {
+            background: #faf0cf;
+            border-radius: 80px;
+            padding: 40px 50px;
+            border: 8px solid #b38b5a;
+            box-shadow: 0 20px 0 #6b4f2b, 0 30px 40px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+        .login-card h2 {
+            font-size: 2.5rem;
+            color: #5a3e1f;
+            margin-bottom: 30px;
+            border-bottom: 4px dashed #b38b5a;
+            padding-bottom: 15px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 15px 25px;
+            margin: 10px 0;
+            border-radius: 60px;
+            border: 4px solid #b38b5a;
+            font-size: 1.2rem;
+            background: #fffef2;
+        }
+        .login-btn {
+            background: #f7d98c;
+            border: 4px solid #b38b5a;
+            border-radius: 50px;
+            padding: 15px 30px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #8f722f;
+            margin: 15px 0 10px;
+            width: 100%;
+            transition: 0.05s;
+            color: #3f2e0f;
+        }
+        .login-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #8f722f;
+        }
+
+        /* ========== 主应用容器 ========== */
+        .app-container {
+            position: relative;
+            z-index: 10;
+            max-width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 251, 235, 0.85);
+            backdrop-filter: blur(5px);
+            border-radius: 70px 70px 50px 50px;
+            box-shadow: 0 30px 40px rgba(0, 20, 0, 0.5), inset 0 1px 10px #ffffcc;
+            padding: 25px 20px 100px 20px;
+            border: 6px solid #a87c4b;
+            min-height: 90vh;
+        }
+
+        /* ========== 班级主页 ========== */
+        .home-view { display: block; }
+        .home-view.hidden { display: none; }
+        .class-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 40px 0;
+            position: relative;
+        }
+        .class-card {
+            background: #f7e3b1;
+            border-radius: 80px;
+            padding: 30px 40px;
+            border: 6px solid #b38b5a;
+            box-shadow: 0 12px 0 #7b5e3b;
+            cursor: pointer;
+            text-align: center;
+            min-width: 200px;
+            position: relative;
+        }
+        .class-card h2 {
+            font-size: 2rem;
+            color: #5a3e1f;
+        }
+        .class-delete-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 24px;
+            height: 24px;
+            accent-color: #f09b5a;
+            z-index: 10;
+        }
+        .add-class {
+            background: #ffeeb5;
+            border: 6px dashed #b38b5a;
+            box-shadow: 0 12px 0 #7b5e3b;
+        }
+
+        /* ========== 班级视图 ========== */
+        .class-view { display: none; }
+        .class-view.active { display: block; }
+
+        .forest-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #2b4f1e;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #e5ffc7;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            color: #3f2e0f;
+            background: #ecd59b;
+            border-radius: 40px;
+            padding: 6px 15px;
+            border: 3px solid #a87c4b;
+            box-shadow: 0 4px 0 #6b4f2b;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .logo i {
+            font-size: 1.5rem;
+            color: #f5e7b2;
+            filter: drop-shadow(0 3px 0 #7b5e3b);
+        }
+        .current-class-name {
+            font-size: 1rem;
+            color: #3f2e0f;
+            background: #b3d9a0;
+            border-radius: 30px;
+            padding: 4px 12px;
+            border: 2px solid #5e8c4e;
+            white-space: nowrap;
+        }
+        .top-right-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .small-reset {
+            padding: 6px 16px !important;
+            font-size: 1rem !important;
+            border-bottom-width: 4px !important;
+            background: #dbb88c !important;
+        }
+        .red-btn {
+            background: #f08080 !important;
+            color: white !important;
+            border-bottom-color: #a13e3e !important;
+        }
+        .logout-btn {
+            background: #dbb88c;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-bottom: 4px solid #8f722f;
+        }
+
+        .settings-bar {
+            display: flex;
+            gap: 20px;
+            background: #b5926a;
+            padding: 15px 30px;
+            border-radius: 80px;
+            margin-bottom: 25px;
+            border: 4px solid #7b5e3b;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: inset 0 2px 10px #efd7a2;
+            margin-right: 0;
+        }
+        .forest-btn {
+            background: #f7e3b1;
+            border: none;
+            border-radius: 60px;
+            padding: 12px 28px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #3f2e0f;
+            border-bottom: 6px solid #a87c4b;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.08s linear;
+            box-shadow: 0 4px 0 #6b4f2b;
+            white-space: nowrap;
+        }
+        .forest-btn:active {
+            transform: translateY(5px);
+            border-bottom-width: 2px;
+        }
+        .forest-btn i {
+            color: #b34141;
+        }
+        .forest-btn.green { background: #d7f0b8; border-bottom-color: #7fa856; }
+        .forest-btn.red { background: #ffcfcf; border-bottom-color: #c56c6c; }
+        .forest-btn.blue { background: #c7e2ff; border-bottom-color: #6190c9; }
+        .forest-btn.undo { background: #f0e0a0; border-bottom-color: #b38b5a; }
+        .forest-btn.select-all {
+            background: #f9e2b3;
+            border-bottom-color: #b38b5a;
+            padding: 8px 20px;
+        }
+        .forest-btn.select-all input {
+            width: 20px;
+            height: 20px;
+            accent-color: #f09b5a;
+            margin-right: 8px;
+        }
+        .student-count {
+            margin-left: auto;
+            background: #ffe3a4;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            border: 3px solid #a87c4b;
+            font-weight: 600;
+            box-shadow: inset 0 2px 5px #ffd966;
+        }
+
+        /* 学生网格 - 每行10个 */
+        .student-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-start;
+            background: rgba(150, 120, 70, 0.15);
+            padding: 30px 20px;
+            border-radius: 80px 80px 50px 50px;
+            border: 3px dashed #b38b5a;
+            margin-bottom: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+            margin-right: 220px;
+            transition: margin-right 0.3s;
+        }
+        .student-card {
+            flex: 0 0 calc(10% - 9px);
+            min-width: 0;
+            max-width: none;
+            background: #fcf1d6;
+            border-radius: 30px 30px 25px 25px;
+            padding: 6px 3px 8px;
+            border: 3px solid #b38b5a;
+            box-shadow: 0 8px 0 #7b5e3b, 0 6px 10px rgba(0,0,0,0.2);
+            text-align: center;
+            position: relative;
+            transition: 0.1s;
+            display: flex;
+            flex-direction: column;
+        }
+        .student-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 0 #7b5e3b, 0 8px 15px rgba(0,0,0,0.25);
+        }
+
+        /* 椭圆复选框样式 - 带勾 */
+        .student-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 40px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f0e0a0;
+            border: 2px solid #b38b5a;
+            cursor: pointer;
+            margin: 0 auto;
+            display: block;
+            transition: background 0.1s, border-color 0.1s;
+            position: relative;
+        }
+        .student-checkbox:checked {
+            background: #b3d9a0;
+            border-color: #5e8c4e;
+        }
+        .student-checkbox:checked::after {
+            content: "✓";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            line-height: 30px;
+            font-size: 20px;
+            color: #2b4b1e;
+            font-weight: bold;
+        }
+        .checkbox-container {
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 2px;
+        }
+
+        .pet-icon {
+            width: 60px;
+            height: 65px;
+            margin: 2px auto 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .pet-icon img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 20px;
+        }
+        .egg-3d {
+            width: 50px;
+            height: 65px;
+            background: radial-gradient(circle at 35% 30%, #ffffff, #f5f0e0);
+            border-radius: 50% / 45% 45% 55% 55%;
+            box-shadow: 0 8px 0 #b3a577, 0 10px 15px rgba(0,0,0,0.3), inset -5px -8px 8px rgba(0,0,0,0.1), inset 8px 8px 15px #fffde7;
+            border: 2px solid #fffde7;
+            transform: rotate(-2deg);
+            position: relative;
+        }
+        .egg-3d::after {
+            content: '';
+            position: absolute;
+            top: 18%;
+            left: 20%;
+            width: 30%;
+            height: 25%;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+        .egg-1 { background: radial-gradient(circle at 35% 30%, #ffe6b3, #f5d0a0); }
+        .egg-2 { background: radial-gradient(circle at 35% 30%, #f0d9ff, #e0c0f0); }
+        .egg-3 { background: radial-gradient(circle at 35% 30%, #c2f0c2, #a0d8a0); }
+        .egg-4 { background: radial-gradient(circle at 35% 30%, #ffe0f0, #f5c0d0); }
+        .egg-5 { background: radial-gradient(circle at 35% 30%, #fff0b3, #f5e0a0); }
+
+        .student-name {
+            font-weight: 700;
+            font-size: 0.75rem;
+            background: #ffda9e;
+            padding: 2px 1px;
+            border-radius: 20px;
+            border: 1px solid #b38b5a;
+            margin: 3px 2px 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* 宠物名称不再显示，保留样式但不使用 */
+        .species-name {
+            font-size: 0.6rem;
+            color: #5e3a1c;
+            background: #eedbaa;
+            border-radius: 20px;
+            padding: 2px;
+            margin: 1px 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid #b38b5a;
+            display: none;
+        }
+        .adopt-status {
+            font-size: 0.6rem;
+            font-weight: 600;
+            background: #fec195;
+            border-radius: 20px;
+            padding: 2px;
+            margin: 1px 5px;
+            border: 1px solid #b38b5a;
+        }
+        .score-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin: 2px 0 1px;
+        }
+        .score-badge {
+            padding: 2px 3px;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid #aaa;
+            font-size: 0.55rem;
+            font-weight: 700;
+            min-width: 28px;
+        }
+        .score-badge.green { background: #c8f0c1; border-color: #2e7d32; }
+        .score-badge.red { background: #ffcdcd; border-color: #c62828; }
+        .score-badge.blue { background: #c2e5ff; border-color: #1565c0; }
+        .score-badge.black { background: #eee; border-color: #333; }
+
+        /* 右侧固定操作栏 */
+        .fixed-action-bar {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(181, 146, 106, 0.9);
+            backdrop-filter: blur(5px);
+            padding: 20px 15px;
+            border-radius: 60px;
+            border: 4px solid #7b5e3b;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+        .fixed-action-bar .forest-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 12px 15px;
+        }
+        .fixed-action-bar .forest-btn.select-all {
+            padding: 8px 10px;
+        }
+
+        /* 模态框通用 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #faf0cf;
+            border-radius: 80px;
+            padding: 30px 40px;
+            max-width: 900px;
+            width: 90%;
+            border: 8px solid #b38b5a;
+            box-shadow: 0 20px 0 #7b5e3b, 0 30px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-content h3 {
+            font-size: 2rem;
+            color: #5a3e1f;
+            margin-bottom: 20px;
+            border-bottom: 4px dashed #b38b5a;
+            padding-bottom: 10px;
+        }
+        .modal-close-icon {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #b34141;
+            background: none;
+            border: none;
+        }
+        .modal-close-icon:hover {
+            color: #8b0000;
+        }
+
+        /* 领养宠物列表 - 每行5个 */
+        .pet-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: flex-start;
+            margin: 20px 0;
+        }
+        .pet-choice {
+            flex: 0 0 calc(20% - 12px);
+            background: #f7e3b1;
+            border: 4px solid #b38b5a;
+            border-radius: 60px;
+            padding: 15px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #7b5e3b;
+            transition: 0.05s;
+            text-align: center;
+        }
+        .pet-choice:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #7b5e3b;
+        }
+        .pet-choice img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 30px;
+        }
+
+        /* 形态设定 - 蛋形态管理 横排每行5个 */
+        .egg-upload-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .egg-upload-item {
+            flex: 0 0 calc(20% - 16px);
+            min-width: 140px;
+            background: #fff5d5;
+            border-radius: 40px;
+            padding: 15px;
+            border: 3px solid #b38b5a;
+        }
+        .egg-upload-item label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .egg-upload-item input[type="file"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .egg-upload-item .upload-preview {
+            max-width: 100%;
+            max-height: 80px;
+            border-radius: 20px;
+            border: 2px solid #b38b5a;
+        }
+
+        /* 宠物种类管理 - 每个宠物的阶段横排每行5个 */
+        .pet-morph-container {
+            margin-bottom: 20px;
+            border: 2px solid #b38b5a;
+            border-radius: 40px;
+            padding: 15px;
+        }
+        .pet-stage-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .pet-stage-item {
+            flex: 0 0 calc(20% - 12px);
+            min-width: 120px;
+            background: #fff5d5;
+            border-radius: 30px;
+            padding: 10px;
+            border: 2px solid #b38b5a;
+        }
+        .pet-stage-item label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .pet-stage-item input[type="file"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .pet-stage-item .upload-preview {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 15px;
+            border: 2px solid #b38b5a;
+        }
+        .delete-pet-btn {
+            margin-top: 10px;
+        }
+
+        /* 项目管理弹窗 - 每行4个 (全局预设) */
+        .manage-project-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .manage-project-item {
+            background: #fff5d5;
+            border-radius: 40px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 3px solid #b38b5a;
+        }
+        .manage-project-item span {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .manage-project-actions button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #b34141;
+        }
+
+        /* 班级设定弹窗 */
+        .settings-layout {
+            display: flex;
+            gap: 20px;
+            text-align: left;
+            margin: 20px 0;
+            background: #f7e3b1;
+            border-radius: 40px;
+            padding: 20px;
+            border: 4px solid #b38b5a;
+        }
+        .settings-sidebar {
+            width: 150px;
+            border-right: 3px solid #b38b5a;
+            padding-right: 15px;
+        }
+        .settings-sidebar div {
+            padding: 10px;
+            background: #fff5d5;
+            border-radius: 30px;
+            margin: 8px 0;
+            cursor: pointer;
+            font-weight: 600;
+            border: 2px solid #b38b5a;
+            text-align: center;
+        }
+        .settings-sidebar div.active {
+            background: #b3d9a0;
+            border-color: #5e8c4e;
+        }
+        .settings-content {
+            flex: 1;
+            background: #fff5d5;
+            border-radius: 30px;
+            padding: 15px;
+            border: 2px solid #b38b5a;
+        }
+        .settings-field {
+            margin: 15px 0;
+        }
+        .settings-field label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #5a3e1f;
+        }
+        .settings-field input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 40px;
+            border: 3px solid #b38b5a;
+            font-size: 1rem;
+            background: #fffef2;
+        }
+        .student-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 3px dashed #b38b5a;
+            border-radius: 30px;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .student-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f7e3b1;
+            border-radius: 40px;
+            padding: 8px 15px;
+            margin: 5px 0;
+            border: 2px solid #b38b5a;
+        }
+        .student-list-item button {
+            background: #ffb4b4;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 快速操作弹窗 */
+        .quick-project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .quick-project-item {
+            background: #f7e3b1;
+            border: 4px solid #b38b5a;
+            border-radius: 70px;
+            padding: 15px 25px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #7b5e3b;
+            transition: 0.05s;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+        }
+        .quick-project-item:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #7b5e3b;
+        }
+        .quick-project-item span:last-child {
+            color: #b34141;
+        }
+
+        /* 撤销历史弹窗 - 增加学生姓名显示 */
+        .history-item {
+            background: #fff5d5;
+            border-radius: 40px;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            border: 2px solid #b38b5a;
+        }
+        .history-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #f09b5a;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .history-item-info {
+            flex: 1;
+            text-align: left;
+            font-size: 1rem;
+        }
+        .history-item-info .time {
+            color: #b34141;
+            font-size: 0.85rem;
+            margin-right: 10px;
+        }
+        .history-item-info .students {
+            color: #5a3e1f;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            word-break: break-word;
+        }
+
+        /* 其他 */
+        .bottom-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        /* 账号管理 */
+        .account-list {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .account-item {
+            background: #fff5d5;
+            border-radius: 40px;
+            padding: 10px 20px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #b38b5a;
+        }
+        .delete-account {
+            color: #b34141;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* 修改密码 */
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 40px;
+            border: 3px solid #b38b5a;
+            font-size: 1rem;
+        }
+
+        /* 响应式调整 */
+        @media screen and (max-width: 1300px) {
+            .student-grid { margin-right: 200px; }
+        }
+        @media screen and (max-width: 1100px) {
+            .student-grid { margin-right: 180px; }
+        }
+        @media screen and (max-width: 900px) {
+            .student-grid { margin-right: 160px; }
+            .fixed-action-bar { padding: 15px 10px; }
+            .fixed-action-bar .forest-btn { padding: 10px 12px; font-size: 1rem; }
+        }
+        @media screen and (max-width: 700px) {
+            .student-grid {
+                margin-right: 0;
+                margin-bottom: 100px;
+            }
+            .fixed-action-bar {
+                position: fixed;
+                top: auto;
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                transform: none;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 15px 10px;
+                border-radius: 60px;
+                width: auto;
+            }
+            .fixed-action-bar .forest-btn {
+                padding: 10px;
+                font-size: 0.9rem;
+                flex: 1;
+                margin: 0 2px;
+            }
+            .fixed-action-bar .forest-btn i { font-size: 1.2rem; }
+            .fixed-action-bar .forest-btn span { display: none; }
+            .fixed-action-bar .forest-btn.select-all span { display: inline; }
+        }
+
+        /* 装饰 */
+        .decor-squirrel { position: fixed; bottom: 20px; left: 20px; color: #b38b5a; font-size: 3rem; opacity: 0.2; z-index: 0; }
+        .decor-bird { position: fixed; top: 80px; right: 30px; color: #b38b5a; font-size: 2.5rem; opacity: 0.2; transform: rotate(10deg); z-index: 0; }
+        .decor-mushroom { position: fixed; bottom: 50px; right: 50px; color: #b38b5a; font-size: 2rem; opacity: 0.15; z-index: 0; }
+    </style>
+</head>
+<body>
+    <!-- 飘落的叶子 -->
+    <div class="leaf" style="left: 5%; animation-delay: 0s;"><i class="fas fa-leaf"></i></div>
+    <div class="leaf" style="left: 20%; animation-delay: 3s;"><i class="fas fa-leaf"></i></div>
+    <div class="leaf" style="left: 40%; animation-delay: 1s;"><i class="fas fa-leaf"></i></div>
+    <div class="leaf" style="left: 60%; animation-delay: 6s;"><i class="fas fa-leaf"></i></div>
+    <div class="leaf" style="left: 80%; animation-delay: 4s;"><i class="fas fa-leaf"></i></div>
+    <div class="leaf" style="left: 90%; animation-delay: 2s;"><i class="fas fa-leaf"></i></div>
+    <div class="decor-squirrel"><i class="fas fa-paw"></i></div>
+    <div class="decor-bird"><i class="fas fa-dove"></i></div>
+    <div class="decor-mushroom"><i class="fas fa-tree"></i></div>
+
+    <!-- 登录界面 -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-card">
+            <h2><i class="fas fa-paw"></i> 萌宠森林学园</h2>
+            <div id="loginForm">
+                <input type="text" class="login-input" placeholder="账号" id="username">
+                <input type="password" class="login-input" placeholder="密码" id="password">
+                <button class="login-btn" id="loginBtn">登 录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用 -->
+    <div class="app-container" id="app" style="display: none;">
+        <!-- 班级主页 -->
+        <div class="home-view" id="homeView">
+            <div class="forest-top">
+                <div class="logo"><i class="fas fa-tree"></i><i class="fas fa-egg" style="margin-left:10px;"></i></div>
+                <div class="top-right-buttons">
+                    <button class="forest-btn small-reset" id="resetHomeBtn"><i class="fas fa-undo-alt"></i> 重置</button>
+                    <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> 退出</button>
+                </div>
+            </div>
+            <h2 id="forestTitle" style="text-align:center; color:#5a3e1f;"></h2>
+            <div class="class-list" id="classListContainer"></div>
+            <div style="text-align:center; display:flex; gap:20px; justify-content:center;">
+                <button class="forest-btn" id="addClassBtn"><i class="fas fa-plus"></i> 新建班级</button>
+                <button class="forest-btn" id="deleteClassBtn" style="background:#f0b0b0;"><i class="fas fa-trash"></i> 删除班级</button>
+            </div>
+        </div>
+
+        <!-- 单个班级视图 -->
+        <div class="class-view" id="classView">
+            <div class="forest-top">
+                <div class="logo" id="backToHomeBtn">
+                    <i class="fas fa-arrow-left"></i> 返回森林
+                    <span id="currentClassName" class="current-class-name"></span>
+                </div>
+                <div class="top-right-buttons">
+                    <button class="forest-btn small-reset red-btn" id="manageAccountsBtn" style="display: none;"><i class="fas fa-user-plus"></i> 创建普通用户账号</button>
+                    <button class="forest-btn small-reset red-btn" id="changePasswordBtn" style="display: none;"><i class="fas fa-key"></i> 修改密码</button>
+                    <button class="forest-btn small-reset" id="resetBtn"><i class="fas fa-undo-alt"></i> 重置</button>
+                    <button class="logout-btn" id="logoutBtn2"><i class="fas fa-sign-out-alt"></i> 退出</button>
+                </div>
+            </div>
+
+            <div class="settings-bar">
+                <button class="forest-btn" id="openClassSettings"><i class="fas fa-cog"></i> 班级设定</button>
+                <button class="forest-btn" id="managePointsBtn"><i class="fas fa-sliders-h"></i> 加减分项目</button>
+                <button class="forest-btn" id="manageRewardsBtn"><i class="fas fa-gift"></i> 兑换奖励设置</button>
+                <span class="student-count" id="studentCountDisplay"><i class="fas fa-users"></i> 0 位宠物魔法师</span>
+            </div>
+
+            <div class="student-grid" id="studentGrid"></div>
+
+            <!-- 右侧固定操作栏 -->
+            <div class="fixed-action-bar" id="fixedActionBar">
+                <button class="forest-btn green" id="addBtnFixed"><i class="fas fa-plus-circle"></i> <span>加分</span></button>
+                <button class="forest-btn red" id="subtractBtnFixed"><i class="fas fa-minus-circle"></i> <span>扣分</span></button>
+                <button class="forest-btn blue" id="redeemBtnFixed"><i class="fas fa-exchange-alt"></i> <span>兑换</span></button>
+                <button class="forest-btn undo" id="undoBtnFixed"><i class="fas fa-undo-alt"></i> <span>撤销</span></button>
+                <div class="forest-btn select-all" id="selectAllFixed">
+                    <input type="checkbox" id="selectAllCheckboxFixed"> <span>全选</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 领养宠物模态框 -->
+    <div class="modal" id="adoptModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closeAdoptBtn">&times;</span>
+            <h3><i class="fas fa-heart"></i> 选择要领养的宠物</h3>
+            <div class="pet-grid" id="petList"></div>
+        </div>
+    </div>
+
+    <!-- 加减分项目管理弹窗（全局） -->
+    <div class="modal" id="managePointsModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closeManagePointsModal">&times;</span>
+            <h3 id="managePointsTitle">加减分项目管理</h3>
+            <input type="text" class="search-box" id="searchManageProject" placeholder="搜索项目">
+            <div class="manage-project-panel" id="manageProjectPanel"></div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="addManageProjectBtn"><i class="fas fa-plus"></i> 新增</button>
+                <button class="forest-btn" id="saveManageProjectBtn"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 兑换奖励管理弹窗（全局） -->
+    <div class="modal" id="manageRewardsModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closeManageRewardsModal">&times;</span>
+            <h3>兑换奖励管理</h3>
+            <div class="manage-project-panel" id="manageRewardPanel"></div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="addManageRewardBtn"><i class="fas fa-plus"></i> 新增</button>
+                <button class="forest-btn" id="saveManageRewardBtn"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速操作弹窗 -->
+    <div class="modal" id="quickActionModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closeQuickModal">&times;</span>
+            <h3 id="quickActionTitle">加分项目</h3>
+            <div class="quick-project-list" id="quickProjectList"></div>
+        </div>
+    </div>
+
+    <!-- 班级设定模态框 -->
+    <div class="modal" id="classSettingsModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="modal-close-icon" id="closeClassSettingsModal">&times;</span>
+            <h3><i class="fas fa-school"></i> 班级设定</h3>
+            <div class="settings-layout">
+                <div class="settings-sidebar" id="settingsSidebar">
+                    <div class="active" data-tab="basic">基础</div>
+                    <div data-tab="students">学生</div>
+                    <div data-tab="morph" id="morphTab" style="display: none;">形态设定</div>
+                </div>
+                <div class="settings-content" id="settingsContent">
+                    <!-- 动态内容 -->
+                </div>
+            </div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="saveSettingsBtn"><i class="fas fa-save"></i> 保存</button>
+                <button class="forest-btn" id="cancelSettingsBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入学生简单弹窗 -->
+    <div class="modal" id="simpleImportModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closeSimpleImportBtn">&times;</span>
+            <h3>导入学生</h3>
+            <textarea id="simpleImportText" rows="6" placeholder="每行一个姓名" style="width:100%; border-radius:60px; padding:15px; border:4px solid #b38b5a;"></textarea>
+            <div style="margin:20px;">
+                <button class="forest-btn" id="simpleImportBtn">导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 形态设定 - 蛋形态管理 -->
+    <div class="modal" id="eggMorphModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closeEggMorphBtn">&times;</span>
+            <h3>蛋形态管理</h3>
+            <div class="egg-upload-grid" id="eggUploadList"></div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="saveEggMorphBtn"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 形态设定 - 宠物种类管理 -->
+    <div class="modal" id="petMorphModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closePetMorphBtn">&times;</span>
+            <h3>宠物种类管理</h3>
+            <div id="petListManage"></div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="addPetBtn"><i class="fas fa-plus"></i> 新增宠物</button>
+                <button class="forest-btn" id="savePetMorphBtn"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 账号管理弹窗 -->
+    <div class="modal" id="accountManageModal">
+        <div class="modal-content">
+            <span class="modal-close-icon" id="closeAccountModal">&times;</span>
+            <h3><i class="fas fa-users-cog"></i> 管理普通账号</h3>
+            <div class="account-list" id="accountList"></div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="addAccountBtn"><i class="fas fa-plus"></i> 新增账号</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码弹窗 -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="modal-close-icon" id="closeChangePasswordModal">&times;</span>
+            <h3><i class="fas fa-key"></i> 修改管理员密码</h3>
+            <div style="margin:20px 0;">
+                <input type="password" id="oldPassword" class="password-input" placeholder="原密码">
+                <input type="password" id="newPassword" class="password-input" placeholder="新密码">
+                <input type="password" id="confirmPassword" class="password-input" placeholder="确认新密码">
+            </div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="saveNewPasswordBtn"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 撤销历史弹窗 -->
+    <div class="modal" id="undoHistoryModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="modal-close-icon" id="closeUndoHistoryModal">&times;</span>
+            <h3><i class="fas fa-history"></i> 撤销操作记录</h3>
+            <div id="undoHistoryList" class="history-list" style="max-height: 400px; overflow-y: auto;"></div>
+            <div class="bottom-buttons">
+                <button class="forest-btn" id="undoSelectedBtn"><i class="fas fa-undo-alt"></i> 撤销选中</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 管理员手机号
+            const ADMIN_PHONE = '18566221280';
+
+            // ========== 用户账号存储 ==========
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            const adminUser = users.find(u => u.username === ADMIN_PHONE);
+            if (!adminUser) {
+                users.push({ username: ADMIN_PHONE, password: 'hp123456' });
+                saveUsers();
+            }
+
+            // ========== 全局预设项目（所有班级共享） ==========
+            let globalPresets = JSON.parse(localStorage.getItem('globalPresets')) || {
+                add: [
+                    { name: '早读', points: 1 },
+                    { name: '卫生', points: 1 },
+                    { name: '上课认真', points: 100 }
+                ],
+                subtract: [
+                    { name: '迟到', points: -1 },
+                    { name: '未交作业', points: -2 },
+                    { name: '扰乱秩序', points: -3 }
+                ],
+                redeem: [
+                    { name: '贴纸一张', points: -10 },
+                    { name: '免作业卡', points: -20 }
+                ]
+            };
+            function saveGlobalPresets() {
+                localStorage.setItem('globalPresets', JSON.stringify(globalPresets));
+            }
+
+            // ========== 蛋形态图片数据 ==========
+            let eggImages = JSON.parse(localStorage.getItem('eggImages')) || Array(5).fill(null);
+            function saveEggImages() { localStorage.setItem('eggImages', JSON.stringify(eggImages)); }
+
+            // ========== 宠物种类数据结构 ==========
+            let petSpecies = JSON.parse(localStorage.getItem('petSpecies')) || [];
+            if (petSpecies.length === 0) {
+                petSpecies = [
+                    { name: '柴犬', stages: [null, null, null, null, null, null] },
+                    { name: '布偶猫', stages: [null, null, null, null, null, null] },
+                    { name: '西方龙', stages: [null, null, null, null, null, null] }
+                ];
+            }
+            function savePetSpecies() { localStorage.setItem('petSpecies', JSON.stringify(petSpecies)); }
+
+            // ========== 班级数据（按用户隔离） ==========
+            function loadClassesForUser(username) {
+                const key = 'classes_' + username;
+                return JSON.parse(localStorage.getItem(key)) || [];
+            }
+            function saveClassesForUser(username, classes) {
+                const key = 'classes_' + username;
+                localStorage.setItem(key, JSON.stringify(classes));
+            }
+
+            // 当前用户的班级数组
+            let classes = [];
+
+            function saveClasses() {
+                if (currentUser) {
+                    saveClassesForUser(currentUser, classes);
+                }
+            }
+
+            // 操作日志（按用户隔离）
+            function loadLogsForUser(username) {
+                const key = 'operationLogs_' + username;
+                return JSON.parse(localStorage.getItem(key)) || [];
+            }
+            function saveLogsForUser(username, logs) {
+                const key = 'operationLogs_' + username;
+                localStorage.setItem(key, JSON.stringify(logs));
+            }
+
+            // 当前用户的操作日志
+            let operationLogs = [];
+
+            // ========== 当前状态 ==========
+            let currentClassId = null;
+            let selectedIndices = new Set();
+            let currentActionType = 'add';
+            let currentAdoptIndex = null;
+            let currentManageType = 'add'; // 用于管理弹窗切换加分/扣分
+            let currentSettingsTab = 'basic';
+            let currentUser = localStorage.getItem('currentUser') || null;
+            let isAdmin = () => currentUser === ADMIN_PHONE;
+
+            // 创建班级的辅助函数
+            function createDefaultClass(id, name) {
+                return {
+                    id: id,
+                    name: name,
+                    students: []
+                };
+            }
+
+            // ========== 音效函数 ==========
+            function playWindChime() {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    const ctx = new AudioContext();
+                    if (ctx.state === 'suspended') {
+                        ctx.resume().then(() => {
+                            createChime(ctx);
+                        }).catch(() => {});
+                    } else {
+                        createChime(ctx);
+                    }
+                } catch (e) {}
+            }
+            function createChime(ctx) {
+                const now = ctx.currentTime;
+                for (let i = 0; i < 2; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = 880 + i * 220;
+                    gain.gain.setValueAtTime(0.1, now + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + i * 0.15);
+                    osc.stop(now + i * 0.15 + 0.4);
+                }
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.value = 660;
+                gain2.gain.setValueAtTime(0.05, now + 0.25);
+                gain2.gain.exponentialRampToValueAtTime(0.005, now + 0.8);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.25);
+                osc2.stop(now + 0.9);
+            }
+
+            function playWindChimeDescending() {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    const ctx = new AudioContext();
+                    if (ctx.state === 'suspended') {
+                        ctx.resume().then(() => {
+                            createDescendingChime(ctx);
+                        }).catch(() => {});
+                    } else {
+                        createDescendingChime(ctx);
+                    }
+                } catch (e) {}
+            }
+            function createDescendingChime(ctx) {
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(220, now + 0.6);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.02, now + 0.7);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.8);
+
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.value = 1320;
+                gain2.gain.setValueAtTime(0.05, now + 0.1);
+                gain2.gain.exponentialRampToValueAtTime(0.005, now + 0.3);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.1);
+                osc2.stop(now + 0.4);
+            }
+
+            // DOM 元素
+            const loginContainer = document.getElementById('loginContainer');
+            const app = document.getElementById('app');
+            const homeView = document.getElementById('homeView');
+            const classView = document.getElementById('classView');
+            const classListContainer = document.getElementById('classListContainer');
+            const forestTitle = document.getElementById('forestTitle');
+            const studentGrid = document.getElementById('studentGrid');
+            const studentCountDisplay = document.getElementById('studentCountDisplay');
+            const logoutBtns = document.querySelectorAll('#logoutBtn, #logoutBtn2');
+            const morphTab = document.getElementById('morphTab');
+            const resetBtn = document.getElementById('resetBtn');
+            const resetHomeBtn = document.getElementById('resetHomeBtn');
+            const currentClassNameSpan = document.getElementById('currentClassName');
+            const manageAccountsBtn = document.getElementById('manageAccountsBtn');
+            const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+            // 右侧固定按钮
+            const addBtnFixed = document.getElementById('addBtnFixed');
+            const subtractBtnFixed = document.getElementById('subtractBtnFixed');
+            const redeemBtnFixed = document.getElementById('redeemBtnFixed');
+            const undoBtnFixed = document.getElementById('undoBtnFixed');
+            const selectAllFixed = document.getElementById('selectAllFixed');
+            const selectAllCheckboxFixed = document.getElementById('selectAllCheckboxFixed');
+
+            // 撤销历史弹窗
+            const undoHistoryModal = document.getElementById('undoHistoryModal');
+            const undoHistoryList = document.getElementById('undoHistoryList');
+            const closeUndoHistoryModal = document.getElementById('closeUndoHistoryModal');
+            const undoSelectedBtn = document.getElementById('undoSelectedBtn');
+
+            // 登录相关
+            const loginBtn = document.getElementById('loginBtn');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+
+            // 账号管理相关
+            const accountManageModal = document.getElementById('accountManageModal');
+            const accountListDiv = document.getElementById('accountList');
+            const addAccountBtn = document.getElementById('addAccountBtn');
+            const closeAccountModal = document.getElementById('closeAccountModal');
+
+            // 修改密码相关
+            const changePasswordModal = document.getElementById('changePasswordModal');
+            const oldPasswordInput = document.getElementById('oldPassword');
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const saveNewPasswordBtn = document.getElementById('saveNewPasswordBtn');
+            const closeChangePasswordModal = document.getElementById('closeChangePasswordModal');
+
+            // 登录状态检查
+            function checkLogin() {
+                if (currentUser) {
+                    // 加载当前用户的班级和日志
+                    classes = loadClassesForUser(currentUser);
+                    operationLogs = loadLogsForUser(currentUser);
+                    loginContainer.classList.add('hidden');
+                    app.style.display = 'block';
+                    if (isAdmin()) {
+                        morphTab.style.display = 'block';
+                        manageAccountsBtn.style.display = 'inline-flex';
+                        changePasswordBtn.style.display = 'inline-flex';
+                    } else {
+                        morphTab.style.display = 'none';
+                        manageAccountsBtn.style.display = 'none';
+                        changePasswordBtn.style.display = 'none';
+                    }
+                    renderHome();
+                } else {
+                    loginContainer.classList.remove('hidden');
+                    app.style.display = 'none';
+                }
+            }
+
+            function logout() {
+                // 保存当前用户的数据
+                if (currentUser) {
+                    saveClassesForUser(currentUser, classes);
+                    saveLogsForUser(currentUser, operationLogs);
+                }
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                checkLogin();
+            }
+            logoutBtns.forEach(btn => btn.addEventListener('click', logout));
+
+            // 登录
+            loginBtn.addEventListener('click', () => {
+                users = JSON.parse(localStorage.getItem('users')) || [];
+                const username = usernameInput.value.trim();
+                const pwd = passwordInput.value.trim();
+                if (!username || !pwd) { alert('请输入账号和密码'); return; }
+                const user = users.find(u => u.username === username && u.password === pwd);
+                if (!user) { alert('账号或密码错误'); return; }
+                currentUser = username;
+                localStorage.setItem('currentUser', username);
+                checkLogin();
+            });
+
+            // 班级主页渲染
+            function renderHome() {
+                forestTitle.innerText = `${currentUser}的森林班级`;
+                classListContainer.innerHTML = '';
+                classes.forEach(cls => {
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    card.innerHTML = `
+                        <input type="checkbox" class="class-delete-checkbox" data-id="${cls.id}">
+                        <h2>${cls.name}</h2>
+                    `;
+                    card.addEventListener('click', (e) => {
+                        if (e.target.tagName !== 'INPUT') {
+                            currentClassId = cls.id;
+                            switchToClass(cls.id);
+                        }
+                    });
+                    classListContainer.appendChild(card);
+                });
+            }
+
+            // 删除班级
+            document.getElementById('deleteClassBtn').addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('.class-delete-checkbox');
+                const selected = [];
+                checkboxes.forEach(cb => {
+                    if (cb.checked) selected.push(cb.dataset.id);
+                });
+                if (selected.length === 0) {
+                    alert('请先勾选要删除的班级');
+                    return;
+                }
+                if (confirm(`确定删除选中的 ${selected.length} 个班级吗？`)) {
+                    classes = classes.filter(cls => !selected.includes(cls.id));
+                    saveClasses();
+                    renderHome();
+                }
+            });
+
+            // 切换班级
+            function switchToClass(classId) {
+                const cls = classes.find(c => c.id === classId);
+                if (!cls) return;
+                homeView.classList.add('hidden');
+                classView.classList.add('active');
+                currentClassNameSpan.innerText = cls.name;
+                selectedIndices.clear();
+                renderGrid(cls);
+            }
+
+            // 根据积分获取阶段
+            function getStageByScore(score) {
+                if (score < 100) return 0;
+                if (score < 200) return 1;
+                if (score < 300) return 2;
+                if (score < 500) return 3;
+                if (score < 700) return 4;
+                return 5;
+            }
+
+            // 获取阶段文字
+            function getStageText(stage, adopted) {
+                if (!adopted) {
+                    if (stage === 0) return '孵化中';
+                    if (stage >= 1) return '可领养';
+                } else {
+                    const texts = ['孵化中', '幼崽期', '萌动期', '成长期', '成熟期', '究极体'];
+                    return texts[stage] || '未知';
+                }
+            }
+
+            // 渲染学生网格
+            function renderGrid(cls) {
+                const students = cls.students;
+                studentGrid.innerHTML = '';
+                students.forEach((s, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'student-card';
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'student-checkbox';
+                    cb.checked = selectedIndices.has(idx);
+                    cb.addEventListener('change', (e) => {
+                        if (e.target.checked) selectedIndices.add(idx);
+                        else selectedIndices.delete(idx);
+                        renderGrid(cls);
+                    });
+
+                    const petDiv = document.createElement('div');
+                    petDiv.className = 'pet-icon';
+                    const stage = getStageByScore(s.total);
+
+                    if (!s.adopted) {
+                        const eggType = s.eggType ?? (s.eggType = Math.floor(Math.random() * 5));
+                        if (eggImages[eggType]) {
+                            petDiv.innerHTML = `<img src="${eggImages[eggType]}" style="max-width:100%; max-height:100%; border-radius:20px;">`;
+                        } else {
+                            petDiv.innerHTML = `<div class="egg-3d egg-${eggType+1}"></div>`;
+                        }
+                        if (stage >= 1 && !s.adopted) {
+                            petDiv.style.cursor = 'pointer';
+                            petDiv.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                currentAdoptIndex = idx;
+                                openAdoptModal(cls);
+                            });
+                        }
+                    } else {
+                        if (stage === 0) {
+                            const eggType = s.eggType ?? (s.eggType = Math.floor(Math.random() * 5));
+                            if (eggImages[eggType]) {
+                                petDiv.innerHTML = `<img src="${eggImages[eggType]}" style="max-width:100%; max-height:100%; border-radius:20px;">`;
+                            } else {
+                                petDiv.innerHTML = `<div class="egg-3d egg-${eggType+1}"></div>`;
+                            }
+                        } else {
+                            const pet = petSpecies.find(p => p.name === s.petName);
+                            if (pet && pet.stages && pet.stages[stage]) {
+                                const imgSrc = pet.stages[stage];
+                                if (imgSrc && imgSrc.startsWith('data:')) {
+                                    petDiv.innerHTML = `<img src="${imgSrc}" style="max-width:100%; max-height:100%; border-radius:20px;">`;
+                                } else {
+                                    petDiv.innerHTML = `<i class="fas ${imgSrc || 'fa-paw'}"></i>`;
+                                }
+                            } else {
+                                petDiv.innerHTML = `<i class="fas fa-paw"></i>`;
+                            }
+                        }
+                    }
+                    card.appendChild(petDiv);
+
+                    const statusSpan = document.createElement('div');
+                    statusSpan.className = 'adopt-status';
+                    statusSpan.innerText = getStageText(stage, s.adopted);
+                    card.appendChild(statusSpan);
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'student-name';
+                    nameDiv.innerText = s.name;
+                    card.appendChild(nameDiv);
+
+                    const row1 = document.createElement('div');
+                    row1.className = 'score-row';
+                    row1.innerHTML = `<span class="score-badge green">+${s.add}</span><span class="score-badge red">-${s.sub}</span>`;
+                    card.appendChild(row1);
+
+                    const row2 = document.createElement('div');
+                    row2.className = 'score-row';
+                    row2.innerHTML = `<span class="score-badge blue">=${s.redeem}</span><span class="score-badge black">${s.total}</span>`;
+                    card.appendChild(row2);
+
+                    const checkboxContainer = document.createElement('div');
+                    checkboxContainer.className = 'checkbox-container';
+                    checkboxContainer.appendChild(cb);
+                    card.appendChild(checkboxContainer);
+
+                    studentGrid.appendChild(card);
+                });
+                studentCountDisplay.innerHTML = `<i class="fas fa-users"></i> ${students.length} 位宠物魔法师`;
+                updateSelectAllCheckbox(students);
+            }
+
+            function updateSelectAllCheckbox(students) {
+                if (selectAllCheckboxFixed) {
+                    selectAllCheckboxFixed.checked = (selectedIndices.size === students.length && students.length > 0);
+                }
+            }
+
+            selectAllCheckboxFixed.addEventListener('change', (e) => {
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                if (e.target.checked) {
+                    selectedIndices.clear();
+                    for (let i = 0; i < cls.students.length; i++) selectedIndices.add(i);
+                } else {
+                    selectedIndices.clear();
+                }
+                renderGrid(cls);
+            });
+
+            function resetCurrentClass() {
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                if (confirm('确定重置全班积分和领养状态？')) {
+                    cls.students.forEach(s => {
+                        s.add = 0; s.sub = 0; s.redeem = 0; s.total = 0; s.adopted = false;
+                        s.eggType = Math.floor(Math.random() * 5);
+                    });
+                    selectedIndices.clear();
+                    renderGrid(cls);
+                    saveClasses();
+                }
+            }
+            resetBtn.addEventListener('click', resetCurrentClass);
+            resetHomeBtn.addEventListener('click', resetCurrentClass);
+
+            // 领养模态框
+            const adoptModal = document.getElementById('adoptModal');
+            const petList = document.getElementById('petList');
+            function openAdoptModal(cls) {
+                petList.innerHTML = '';
+                petSpecies.forEach(pet => {
+                    const div = document.createElement('div');
+                    div.className = 'pet-choice';
+                    const stageImg = pet.stages[1];
+                    if (stageImg && stageImg.startsWith('data:')) {
+                        div.innerHTML = `<img src="${stageImg}"><br>${pet.name}`;
+                    } else {
+                        div.innerHTML = `<i class="fas ${stageImg || 'fa-paw'}"></i><br>${pet.name}`;
+                    }
+                    div.addEventListener('click', () => {
+                        if (currentAdoptIndex !== null) {
+                            const student = cls.students[currentAdoptIndex];
+                            student.adopted = true;
+                            student.petName = pet.name;
+                            adoptModal.classList.remove('active');
+                            renderGrid(cls);
+                            saveClasses();
+                        }
+                    });
+                    petList.appendChild(div);
+                });
+                adoptModal.classList.add('active');
+            }
+            document.getElementById('closeAdoptBtn').addEventListener('click', () => {
+                adoptModal.classList.remove('active');
+            });
+
+            // ========== 加减分项目管理弹窗（全局） ==========
+            const managePointsModal = document.getElementById('managePointsModal');
+            const manageProjectPanel = document.getElementById('manageProjectPanel');
+            const managePointsTitle = document.getElementById('managePointsTitle');
+
+            document.getElementById('managePointsBtn').addEventListener('click', () => {
+                // 不需要班级，直接打开全局预设管理
+                currentManageType = 'add';
+                renderManagePanel();
+                managePointsModal.classList.add('active');
+            });
+
+            function renderManagePanel() {
+                const list = currentManageType === 'add' ? globalPresets.add : globalPresets.subtract;
+                const title = currentManageType === 'add' ? '加分项管理' : '扣分项管理';
+                managePointsTitle.innerText = title;
+                let html = '';
+                list.forEach((p, index) => {
+                    html += `
+                        <div class="manage-project-item">
+                            <span>${p.name} (${p.points>0?'+':''}${p.points})</span>
+                            <div class="manage-project-actions">
+                                <button class="delete-manage-item" data-type="${currentManageType}" data-index="${index}">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `
+                    <div style="grid-column: span 4; margin-top: 20px; text-align: center;">
+                        <button class="forest-btn" id="switchManageType">切换到${currentManageType==='add'?'扣分项':'加分项'}</button>
+                    </div>
+                `;
+                manageProjectPanel.innerHTML = html;
+
+                document.querySelectorAll('.delete-manage-item').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const type = btn.dataset.type;
+                        const idx = btn.dataset.index;
+                        if (type === 'add') {
+                            globalPresets.add.splice(idx, 1);
+                        } else {
+                            globalPresets.subtract.splice(idx, 1);
+                        }
+                        renderManagePanel();
+                    });
+                });
+
+                document.getElementById('switchManageType')?.addEventListener('click', () => {
+                    currentManageType = currentManageType === 'add' ? 'subtract' : 'add';
+                    renderManagePanel();
+                });
+            }
+
+            document.getElementById('addManageProjectBtn').addEventListener('click', () => {
+                const newName = prompt('输入项目名称');
+                if (!newName) return;
+                const newPoints = parseFloat(prompt('输入分数（正数为加，负数为减）'));
+                if (isNaN(newPoints)) return;
+                if (currentManageType === 'add') {
+                    globalPresets.add.push({ name: newName, points: newPoints });
+                } else {
+                    globalPresets.subtract.push({ name: newName, points: newPoints });
+                }
+                renderManagePanel();
+            });
+
+            document.getElementById('saveManageProjectBtn').addEventListener('click', () => {
+                saveGlobalPresets();
+                alert('项目已保存');
+                managePointsModal.classList.remove('active');
+            });
+            document.getElementById('closeManagePointsModal').addEventListener('click', () => {
+                managePointsModal.classList.remove('active');
+            });
+
+            // ========== 兑换奖励管理弹窗（全局） ==========
+            const manageRewardsModal = document.getElementById('manageRewardsModal');
+            const manageRewardPanel = document.getElementById('manageRewardPanel');
+            document.getElementById('manageRewardsBtn').addEventListener('click', () => {
+                renderRewardManagePanel();
+                manageRewardsModal.classList.add('active');
+            });
+
+            function renderRewardManagePanel() {
+                const list = globalPresets.redeem;
+                let html = '';
+                list.forEach((p, index) => {
+                    html += `
+                        <div class="manage-project-item">
+                            <span>${p.name} (${-p.points}分)</span>
+                            <div class="manage-project-actions">
+                                <button class="delete-reward-manage" data-index="${index}">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                manageRewardPanel.innerHTML = html;
+
+                document.querySelectorAll('.delete-reward-manage').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const idx = btn.dataset.index;
+                        globalPresets.redeem.splice(idx, 1);
+                        renderRewardManagePanel();
+                    });
+                });
+            }
+
+            document.getElementById('addManageRewardBtn').addEventListener('click', () => {
+                const name = prompt('输入奖励名称');
+                if (!name) return;
+                const points = parseInt(prompt('输入所需积分（正数）'), 10);
+                if (isNaN(points) || points <= 0) return;
+                globalPresets.redeem.push({ name, points: -points });
+                renderRewardManagePanel();
+            });
+
+            document.getElementById('saveManageRewardBtn').addEventListener('click', () => {
+                saveGlobalPresets();
+                alert('奖励设置已保存');
+                manageRewardsModal.classList.remove('active');
+            });
+            document.getElementById('closeManageRewardsModal').addEventListener('click', () => {
+                manageRewardsModal.classList.remove('active');
+            });
+
+            // ========== 快速操作弹窗（使用全局预设） ==========
+            const quickModal = document.getElementById('quickActionModal');
+            const quickTitle = document.getElementById('quickActionTitle');
+            const quickList = document.getElementById('quickProjectList');
+
+            function openQuickModal(actionType) {
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                if (selectedIndices.size === 0) {
+                    alert('请先选择学生');
+                    return;
+                }
+                currentActionType = actionType;
+                let title = '';
+                let items = [];
+                if (actionType === 'add') {
+                    title = '加分项目';
+                    items = globalPresets.add;
+                } else if (actionType === 'subtract') {
+                    title = '扣分项目';
+                    items = globalPresets.subtract;
+                } else {
+                    title = '兑换奖励';
+                    items = globalPresets.redeem;
+                }
+                quickTitle.innerText = title;
+                quickList.innerHTML = '';
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'quick-project-item';
+                    const points = actionType === 'redeem' ? -item.points : item.points;
+                    div.innerHTML = `<span>${item.name}</span><span>${points>0?'+':''}${points}</span>`;
+                    div.addEventListener('click', () => {
+                        applyQuickAction(item);
+                    });
+                    quickList.appendChild(div);
+                });
+                quickModal.classList.add('active');
+            }
+
+            function applyQuickAction(item) {
+                if (currentActionType === 'add' || currentActionType === 'redeem') {
+                    playWindChime();
+                } else if (currentActionType === 'subtract') {
+                    playWindChimeDescending();
+                }
+
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                let points = item.points;
+                const affectedIndices = Array.from(selectedIndices);
+                const timestamp = Date.now();
+                const dateStr = new Date().toLocaleDateString();
+
+                const studentNames = affectedIndices.map(idx => cls.students[idx].name);
+
+                operationLogs.push({
+                    classId: currentClassId,
+                    studentIndices: affectedIndices,
+                    studentNames: studentNames,
+                    action: currentActionType,
+                    points: points,
+                    itemName: item.name,
+                    timestamp: timestamp,
+                    dateStr: dateStr
+                });
+                saveLogsForUser(currentUser, operationLogs);
+
+                affectedIndices.forEach(idx => {
+                    const s = cls.students[idx];
+                    if (currentActionType === 'add') {
+                        s.add += points;
+                        s.total += points;
+                    } else if (currentActionType === 'subtract') {
+                        const val = points > 0 ? -points : points;
+                        s.sub += Math.abs(val);
+                        s.total += val;
+                    } else {
+                        const val = points > 0 ? -points : points;
+                        s.redeem += Math.abs(val);
+                        s.total += val;
+                    }
+                });
+                selectedIndices.clear();
+                renderGrid(cls);
+                quickModal.classList.remove('active');
+                saveClasses();
+            }
+
+            addBtnFixed.addEventListener('click', () => openQuickModal('add'));
+            subtractBtnFixed.addEventListener('click', () => openQuickModal('subtract'));
+            redeemBtnFixed.addEventListener('click', () => openQuickModal('redeem'));
+            document.getElementById('closeQuickModal').addEventListener('click', () => {
+                quickModal.classList.remove('active');
+            });
+
+            // ========== 撤销功能 ==========
+            function renderUndoHistory(logs) {
+                let html = '';
+                logs.forEach((log, index) => {
+                    const actionMap = { add: '加分', subtract: '扣分', redeem: '兑换' };
+                    const actionText = actionMap[log.action] || log.action;
+                    const points = log.points > 0 ? '+' + log.points : log.points;
+                    const studentCount = log.studentIndices.length;
+                    const timeStr = new Date(log.timestamp).toLocaleTimeString();
+                    const itemName = log.itemName || '未知项目';
+                    let studentList = log.studentNames || [];
+                    if (studentList.length === 0) {
+                        studentList = ['未知学生'];
+                    }
+                    let studentDisplay = studentList.slice(0, 3).join('、');
+                    if (studentList.length > 3) {
+                        studentDisplay += ` 等${studentList.length}人`;
+                    }
+                    html += `
+                        <div class="history-item">
+                            <input type="checkbox" class="undo-checkbox" data-index="${index}">
+                            <div class="history-item-info">
+                                <span class="time">${timeStr}</span>
+                                <span>${actionText}：${itemName} (${points})</span>
+                                <div class="students">👤 ${studentDisplay}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                undoHistoryList.innerHTML = html;
+            }
+
+            undoBtnFixed.addEventListener('click', () => {
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                const today = new Date().toLocaleDateString();
+                const logs = operationLogs.filter(log => log.classId === currentClassId && log.dateStr === today);
+                if (logs.length === 0) {
+                    alert('今日无操作记录');
+                    return;
+                }
+                logs.sort((a,b) => b.timestamp - a.timestamp);
+                renderUndoHistory(logs);
+                undoHistoryModal.classList.add('active');
+            });
+
+            undoSelectedBtn.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('.undo-checkbox:checked');
+                if (checkboxes.length === 0) {
+                    alert('请至少选择一条记录');
+                    return;
+                }
+                const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                const today = new Date().toLocaleDateString();
+                const logs = operationLogs.filter(log => log.classId === currentClassId && log.dateStr === today);
+                logs.sort((a,b) => b.timestamp - a.timestamp);
+                const selectedLogs = selectedIndices.map(idx => logs[idx]);
+
+                selectedLogs.forEach(log => {
+                    log.studentIndices.forEach(idx => {
+                        const s = cls.students[idx];
+                        if (s) {
+                            if (log.action === 'add') {
+                                s.add -= log.points;
+                                s.total -= log.points;
+                            } else if (log.action === 'subtract') {
+                                const val = log.points;
+                                s.sub -= Math.abs(val);
+                                s.total -= val;
+                            } else if (log.action === 'redeem') {
+                                const val = log.points;
+                                s.redeem -= Math.abs(val);
+                                s.total -= val;
+                            }
+                        }
+                    });
+                });
+
+                operationLogs = operationLogs.filter(log => !selectedLogs.includes(log));
+                saveLogsForUser(currentUser, operationLogs);
+
+                renderGrid(cls);
+                undoHistoryModal.classList.remove('active');
+                saveClasses();
+            });
+
+            closeUndoHistoryModal.addEventListener('click', () => {
+                undoHistoryModal.classList.remove('active');
+            });
+
+            // ========== 班级设定 ==========
+            const classSettingsModal = document.getElementById('classSettingsModal');
+            const settingsSidebar = document.getElementById('settingsSidebar');
+            const settingsContent = document.getElementById('settingsContent');
+            const closeClassSettingsModal = document.getElementById('closeClassSettingsModal');
+
+            document.getElementById('openClassSettings').addEventListener('click', () => {
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                openSettings(cls);
+            });
+
+            function openSettings(cls) {
+                currentSettingsTab = 'basic';
+                renderSettingsTab(cls);
+                classSettingsModal.classList.add('active');
+            }
+
+            function renderSettingsTab(cls) {
+                if (currentSettingsTab === 'basic') {
+                    settingsContent.innerHTML = `
+                        <div class="settings-field">
+                            <label>班级名称</label>
+                            <input type="text" id="settingsClassName" value="${cls.name}">
+                        </div>
+                    `;
+                } else if (currentSettingsTab === 'students') {
+                    let studentHtml = '<div class="student-list">';
+                    cls.students.forEach((s, idx) => {
+                        studentHtml += `
+                            <div class="student-list-item">
+                                <span>${s.name}</span>
+                                <button class="delete-student" data-index="${idx}">✖</button>
+                            </div>
+                        `;
+                    });
+                    studentHtml += '</div>';
+                    studentHtml += `
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="forest-btn" id="addStudentBtn"><i class="fas fa-plus"></i> 新增学生</button>
+                            <button class="forest-btn" id="importStudentBtn"><i class="fas fa-upload"></i> 导入</button>
+                        </div>
+                    `;
+                    settingsContent.innerHTML = studentHtml;
+
+                    document.querySelectorAll('.delete-student').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const idx = btn.dataset.index;
+                            cls.students.splice(idx, 1);
+                            openSettings(cls);
+                        });
+                    });
+
+                    document.getElementById('addStudentBtn').addEventListener('click', () => {
+                        const name = prompt('输入学生姓名');
+                        if (name) {
+                            cls.students.push({
+                                name: name,
+                                add: 0, sub: 0, redeem: 0, total: 0,
+                                adopted: false, petName: null,
+                                eggType: Math.floor(Math.random() * 5)
+                            });
+                            openSettings(cls);
+                        }
+                    });
+
+                    document.getElementById('importStudentBtn').addEventListener('click', () => {
+                        simpleImportModal.classList.add('active');
+                        window.importCallback = (names) => {
+                            names.forEach(n => {
+                                cls.students.push({
+                                    name: n,
+                                    add: 0, sub: 0, redeem: 0, total: 0,
+                                    adopted: false, petName: null,
+                                    eggType: Math.floor(Math.random() * 5)
+                                });
+                            });
+                            openSettings(cls);
+                        };
+                    });
+                } else if (currentSettingsTab === 'morph' && isAdmin()) {
+                    settingsContent.innerHTML = `
+                        <div style="margin:20px 0;">
+                            <button class="forest-btn" id="manageEggMorphBtn"><i class="fas fa-egg"></i> 蛋形态管理</button>
+                        </div>
+                        <div style="margin:20px 0;">
+                            <button class="forest-btn" id="managePetMorphBtn"><i class="fas fa-paw"></i> 宠物种类管理</button>
+                        </div>
+                    `;
+                    document.getElementById('manageEggMorphBtn').addEventListener('click', () => {
+                        openEggMorphModal();
+                    });
+                    document.getElementById('managePetMorphBtn').addEventListener('click', () => {
+                        openPetMorphModal();
+                    });
+                }
+            }
+
+            settingsSidebar.querySelectorAll('div').forEach(div => {
+                div.addEventListener('click', () => {
+                    settingsSidebar.querySelectorAll('div').forEach(d => d.classList.remove('active'));
+                    div.classList.add('active');
+                    currentSettingsTab = div.dataset.tab;
+                    const cls = classes.find(c => c.id === currentClassId);
+                    if (cls) renderSettingsTab(cls);
+                });
+            });
+
+            document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+                const cls = classes.find(c => c.id === currentClassId);
+                if (!cls) return;
+                if (currentSettingsTab === 'basic') {
+                    const newName = document.getElementById('settingsClassName')?.value;
+                    if (newName) cls.name = newName;
+                }
+                alert('设置已保存');
+                saveClasses();
+                classSettingsModal.classList.remove('active');
+                renderGrid(cls);
+            });
+
+            document.getElementById('cancelSettingsBtn').addEventListener('click', () => {
+                classSettingsModal.classList.remove('active');
+            });
+            closeClassSettingsModal.addEventListener('click', () => {
+                classSettingsModal.classList.remove('active');
+            });
+
+            // ========== 蛋形态管理 ==========
+            const eggMorphModal = document.getElementById('eggMorphModal');
+            const eggUploadList = document.getElementById('eggUploadList');
+            function openEggMorphModal() {
+                let html = '';
+                for (let i = 0; i < 5; i++) {
+                    html += `
+                        <div class="egg-upload-item">
+                            <label>蛋 ${i+1}</label>
+                            <input type="file" accept="image/*" class="egg-upload" data-index="${i}">
+                            <br>
+                            <img src="${eggImages[i] || ''}" class="upload-preview" id="eggPreview${i}">
+                        </div>
+                    `;
+                }
+                eggUploadList.innerHTML = html;
+                document.querySelectorAll('.egg-upload').forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const idx = input.dataset.index;
+                                eggImages[idx] = e.target.result;
+                                document.getElementById(`eggPreview${idx}`).src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                });
+                eggMorphModal.classList.add('active');
+            }
+            document.getElementById('saveEggMorphBtn').addEventListener('click', () => {
+                saveEggImages();
+                alert('蛋形态已保存');
+                eggMorphModal.classList.remove('active');
+            });
+            document.getElementById('closeEggMorphBtn').addEventListener('click', () => {
+                eggMorphModal.classList.remove('active');
+            });
+
+            // ========== 宠物种类管理 ==========
+            const petMorphModal = document.getElementById('petMorphModal');
+            const petListManage = document.getElementById('petListManage');
+            function openPetMorphModal() {
+                renderPetListManage();
+                petMorphModal.classList.add('active');
+            }
+            function renderPetListManage() {
+                let html = '';
+                petSpecies.forEach((pet, idx) => {
+                    html += `<div class="pet-morph-container">`;
+                    html += `<h4>${pet.name}</h4>`;
+                    html += `<div class="pet-stage-grid">`;
+                    const stageNames = ['幼崽期', '萌动期', '成长期', '成熟期', '究极体'];
+                    for (let s = 1; s <= 5; s++) {
+                        html += `
+                            <div class="pet-stage-item">
+                                <label>${stageNames[s-1]}</label>
+                                <input type="file" accept="image/*" class="pet-stage-upload" data-pet="${idx}" data-stage="${s}">
+                                <img src="${pet.stages[s] || ''}" class="upload-preview" id="petPreview${idx}_${s}">
+                            </div>
+                        `;
+                    }
+                    html += `</div>`;
+                    html += `<button class="forest-btn delete-pet-btn" data-index="${idx}"><i class="fas fa-trash"></i> 删除此宠物</button>`;
+                    html += `</div>`;
+                });
+                html += `<button class="forest-btn" id="addNewPetBtn" style="margin-top:20px;"><i class="fas fa-plus"></i> 新增宠物</button>`;
+                petListManage.innerHTML = html;
+
+                document.querySelectorAll('.pet-stage-upload').forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const petIdx = input.dataset.pet;
+                                const stageIdx = input.dataset.stage;
+                                petSpecies[petIdx].stages[stageIdx] = e.target.result;
+                                document.getElementById(`petPreview${petIdx}_${stageIdx}`).src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-pet-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = e.target.closest('button').dataset.index;
+                        petSpecies.splice(idx, 1);
+                        renderPetListManage();
+                    });
+                });
+
+                document.getElementById('addNewPetBtn').addEventListener('click', () => {
+                    const name = prompt('输入新宠物名称');
+                    if (!name) return;
+                    petSpecies.push({
+                        name: name,
+                        stages: [null, null, null, null, null, null]
+                    });
+                    renderPetListManage();
+                });
+            }
+            document.getElementById('savePetMorphBtn').addEventListener('click', () => {
+                savePetSpecies();
+                alert('宠物形态已保存');
+                petMorphModal.classList.remove('active');
+            });
+            document.getElementById('closePetMorphBtn').addEventListener('click', () => {
+                petMorphModal.classList.remove('active');
+            });
+
+            // ========== 导入学生简单模态框 ==========
+            const simpleImportModal = document.getElementById('simpleImportModal');
+            const simpleImportText = document.getElementById('simpleImportText');
+            document.getElementById('simpleImportBtn').addEventListener('click', () => {
+                const text = simpleImportText.value.trim();
+                if (!text) return;
+                const names = text.split('\n').map(s => s.trim()).filter(s => s);
+                if (window.importCallback) window.importCallback(names);
+                simpleImportModal.classList.remove('active');
+                simpleImportText.value = '';
+            });
+            document.getElementById('closeSimpleImportBtn').addEventListener('click', () => {
+                simpleImportModal.classList.remove('active');
+            });
+
+            // ========== 新建班级 ==========
+            document.getElementById('addClassBtn').addEventListener('click', () => {
+                if (classes.length >= 3) {
+                    alert('最多只能创建3个班级');
+                    return;
+                }
+                const newName = prompt('输入班级名称', '新班级');
+                if (!newName) return;
+                const newId = 'c' + Date.now();
+                classes.push(createDefaultClass(newId, newName));
+                saveClasses();
+                renderHome();
+            });
+
+            // ========== 返回主页 ==========
+            document.getElementById('backToHomeBtn').addEventListener('click', () => {
+                classView.classList.remove('active');
+                homeView.classList.remove('hidden');
+                selectedIndices.clear();
+                renderHome();
+            });
+
+            // ========== 账号管理 ==========
+            function renderAccountList() {
+                const nonAdminUsers = users.filter(u => u.username !== ADMIN_PHONE);
+                let html = '';
+                nonAdminUsers.forEach((user, index) => {
+                    html += `
+                        <div class="account-item" data-username="${user.username}">
+                            <span>${user.username}</span>
+                            <span class="delete-account" data-username="${user.username}">🗑️ 删除</span>
+                        </div>
+                    `;
+                });
+                accountListDiv.innerHTML = html || '<p>暂无普通账号</p>';
+            }
+
+            accountListDiv.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-account')) {
+                    const username = e.target.dataset.username;
+                    if (confirm(`确定删除账号 ${username} 吗？`)) {
+                        users = users.filter(u => u.username !== username);
+                        saveUsers();
+                        renderAccountList();
+                    }
+                }
+            });
+
+            manageAccountsBtn.addEventListener('click', () => {
+                renderAccountList();
+                accountManageModal.classList.add('active');
+            });
+
+            addAccountBtn.addEventListener('click', () => {
+                const newUsername = prompt('输入新账号');
+                if (!newUsername) return;
+                if (users.find(u => u.username === newUsername)) {
+                    alert('账号已存在');
+                    return;
+                }
+                const newPassword = prompt('输入密码');
+                if (!newPassword) return;
+                users.push({ username: newUsername, password: newPassword });
+                saveUsers();
+                renderAccountList();
+            });
+
+            closeAccountModal.addEventListener('click', () => {
+                accountManageModal.classList.remove('active');
+            });
+
+            // ========== 修改密码 ==========
+            changePasswordBtn.addEventListener('click', () => {
+                changePasswordModal.classList.add('active');
+            });
+
+            saveNewPasswordBtn.addEventListener('click', () => {
+                const oldPwd = oldPasswordInput.value;
+                const newPwd = newPasswordInput.value;
+                const confirmPwd = confirmPasswordInput.value;
+                const admin = users.find(u => u.username === ADMIN_PHONE);
+                if (!admin) return;
+                if (admin.password !== oldPwd) {
+                    alert('原密码错误');
+                    return;
+                }
+                if (newPwd !== confirmPwd) {
+                    alert('两次新密码不一致');
+                    return;
+                }
+                if (newPwd.length < 3) {
+                    alert('密码长度至少3位');
+                    return;
+                }
+                admin.password = newPwd;
+                saveUsers();
+                alert('密码修改成功');
+                changePasswordModal.classList.remove('active');
+                oldPasswordInput.value = '';
+                newPasswordInput.value = '';
+                confirmPasswordInput.value = '';
+            });
+
+            closeChangePasswordModal.addEventListener('click', () => {
+                changePasswordModal.classList.remove('active');
+            });
+
+            // 初始检查登录状态
+            checkLogin();
+        })();
+    </script>
+</body>
+</html>

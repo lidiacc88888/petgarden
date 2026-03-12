@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>宠萌学园 · 森林萌宠版（账号隔离+全局预设）</title>
+    <title>宠萌学园 · 森林萌宠版（最终版）</title>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -1397,17 +1397,21 @@
             }
             logoutBtns.forEach(btn => btn.addEventListener('click', logout));
 
-            // 登录
+            // 登录 - 增加错误捕获
             loginBtn.addEventListener('click', () => {
-                users = JSON.parse(localStorage.getItem('users')) || [];
-                const username = usernameInput.value.trim();
-                const pwd = passwordInput.value.trim();
-                if (!username || !pwd) { alert('请输入账号和密码'); return; }
-                const user = users.find(u => u.username === username && u.password === pwd);
-                if (!user) { alert('账号或密码错误'); return; }
-                currentUser = username;
-                localStorage.setItem('currentUser', username);
-                checkLogin();
+                try {
+                    users = JSON.parse(localStorage.getItem('users')) || [];
+                    const username = usernameInput.value.trim();
+                    const pwd = passwordInput.value.trim();
+                    if (!username || !pwd) { alert('请输入账号和密码'); return; }
+                    const user = users.find(u => u.username === username && u.password === pwd);
+                    if (!user) { alert('账号或密码错误'); return; }
+                    currentUser = username;
+                    localStorage.setItem('currentUser', username);
+                    checkLogin();
+                } catch (e) {
+                    alert('登录过程发生错误：' + e.message);
+                }
             });
 
             // 班级主页渲染
